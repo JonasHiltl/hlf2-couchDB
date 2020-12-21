@@ -15,6 +15,10 @@ Organization peers and an ordering service node. You can use it on your local ma
 You can also use it to deploy and test your own Fabric chaincodes and applications. To get started, see
 the [test network tutorial](https://hyperledger-fabric.readthedocs.io/en/latest/test_network.html).
 
+
+Use to start the network, create the channel and use CouchDB as the state Database
+./network.sh up createChannel -ca -s couchdb
+
 ## Asset transfer samples and tutorials
 
 The asset transfer series provides a series of sample smart contracts and applications to demonstrate how to store and transfer assets using Hyperledger Fabric.
