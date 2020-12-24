@@ -1,0 +1,81 @@
+name: "sample.Network"
+version: "1.1"
+
+channels:
+  mychannel:
+    orderers:
+      - orderer.example.com
+    peers:
+      - peer0.org1.example.com
+      - peer0.org2.example.com
+
+organizations:
+  Org1:
+    mspid: Org1MSP
+    peers:
+      - peer0.org1.example.com
+
+  Org2:
+    mspid: Org2MSP
+    peers:
+      - peer0.org2.example.com
+
+orderers:
+  orderer.example.com:
+    url: grpcs://localhost:7050
+    grpcOptions:
+      ssl-target-name-override: orderer.example.com
+    tlsCACerts:
+      path: test/ordererOrganizations/example.com/orderers/orderer.example.com/tlscacerts/example.com-cert.pem
+
+peers:
+  peer0.org1.example.com:
+    url: grpcs://localhost:7051
+    grpcOptions:
+      ssl-target-name-override: peer0.org1.example.com
+    tlsCACerts:
+      path: test/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tlscacerts/org1.example.com-cert.pem
+
+  peer0.org2.example.com:
+    url: grpcs://localhost:8051
+    grpcOptions:
+      ssl-target-name-override: peer0.org2.example.com
+    tlsCACerts:
+      path: test/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tlscacerts/org2.example.com-cert.pem
+
+certificateAuthorities:
+  ca-org1:
+    url: https://localhost:7054
+    # the properties specified under this object are passed to the 'http' client verbatim when
+    # making the request to the Fabric-CA server
+    httpOptions:
+      verify: true
+    tlsCACerts:
+      # Comma-Separated list of paths
+      path: peerOrganizations/org1.example.com/ca/org1.example.com-cert.pem
+      # Client key and cert for TLS mutual auth with Fabric CA. If the target Fabric CA server
+      # does not have TLS mutual auth turned on, then this section is not needed
+      client:
+        keyfile: <path to file>
+        certfile: <byte string>
+
+
+    # Fabric-CA supports dynamic user enrollment via REST APIs. A "root" user, a.k.a registrar, is 
+    # needed to enroll and invoke new users.
+    registrar:
+       enrollId: admin
+       enrollSecret: adminpw
+    # [Optional] The optional name of the CA.
+    caName: ca-org1
+  ca-org2:
+    url: https://localhost:8054
+    httpOptions:
+      verify: true
+    tlsCACerts:
+      client:
+        keyfile: <path to file>
+        certfile: <byte string>
+    registrar:
+       enrollId: admin
+       enrollSecret: adminpw
+    caName: ca-org2

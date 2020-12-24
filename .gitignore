@@ -8,8 +8,8 @@
 /bin
 /config
 .env
-./test-network/.env
-./test-network/docker/.env
+/test-network/.env
+/test-network/docker/.env
 .DS_Store
 .project
 # omit Go vendor directories
