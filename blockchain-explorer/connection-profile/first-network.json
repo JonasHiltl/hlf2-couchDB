@@ -38,7 +38,7 @@
 		"Org1MSP": {
 			"mspid": "Org1MSP",
 			"adminPrivateKey": {
-				"path": "/opt/data/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/f4dda9c4d52f0deddfe7bc5f204079f3fa00a3830553391eb7bd9dbce4da9541_sk"
+				"path": "/opt/data/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/6acf9bced1b2ad798d1d3abab5678d754b50e85e6a4e01336b40b27e7f0429cd_sk"
 			},
 			"peers": ["peer0.org1.example.com"],
 			"signedCert": {
