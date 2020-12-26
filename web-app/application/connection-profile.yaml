@@ -26,7 +26,7 @@ orderers:
     grpcOptions:
       ssl-target-name-override: orderer.example.com
     tlsCACerts:
-      path: test/ordererOrganizations/example.com/orderers/orderer.example.com/tlscacerts/example.com-cert.pem
+      path: /run/media/jonas/DATA/hyperledger/networkWithCouchdb/fabric-samples/test-network/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/tlscacerts/tls-localhost-9054-ca-orderer.pem
 
 peers:
   peer0.org1.example.com:
@@ -34,14 +34,14 @@ peers:
     grpcOptions:
       ssl-target-name-override: peer0.org1.example.com
     tlsCACerts:
-      path: test/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tlscacerts/org1.example.com-cert.pem
+      path: /run/media/jonas/DATA/hyperledger/networkWithCouchdb/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/tlscacerts/tls-localhost-7054-ca-org1.pem
 
   peer0.org2.example.com:
     url: grpcs://localhost:8051
     grpcOptions:
       ssl-target-name-override: peer0.org2.example.com
     tlsCACerts:
-      path: test/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tlscacerts/org2.example.com-cert.pem
+      path: /run/media/jonas/DATA/hyperledger/networkWithCouchdb/fabric-samples/test-network/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/tlscacerts/tls-localhost-8054-ca-org2.pem
 
 certificateAuthorities:
   ca-org1:
@@ -52,7 +52,7 @@ certificateAuthorities:
       verify: true
     tlsCACerts:
       # Comma-Separated list of paths
-      path: peerOrganizations/org1.example.com/ca/org1.example.com-cert.pem
+      path: /run/media/jonas/DATA/hyperledger/networkWithCouchdb/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem
       # Client key and cert for TLS mutual auth with Fabric CA. If the target Fabric CA server
       # does not have TLS mutual auth turned on, then this section is not needed
       client:
@@ -72,6 +72,7 @@ certificateAuthorities:
     httpOptions:
       verify: true
     tlsCACerts:
+      path: /run/media/jonas/DATA/hyperledger/networkWithCouchdb/fabric-samples/test-network/organizations/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem
       client:
         keyfile: <path to file>
         certfile: <byte string>
