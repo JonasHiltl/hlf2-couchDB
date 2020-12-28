@@ -13,4 +13,4 @@ system-genesis-block/*
 *.tar.gz
 log.txt
 .env
-/docker/.env
+docker/.env
