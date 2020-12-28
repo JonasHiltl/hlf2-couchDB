@@ -8,8 +8,8 @@
 /bin
 /config
 .env
-/test-network/.env
-/test-network/docker/.env
+test-network/.env
+test-network/docker/.env
 web-app/application/wallet/*
 .DS_Store
 .project
