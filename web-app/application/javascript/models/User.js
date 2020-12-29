@@ -18,7 +18,7 @@ const UserSchema = mongoose.Schema({
         required: true
     },
     password: {
-        type: String,
+        type: {},
         required: true
     },
     registerDate: {
@@ -27,12 +27,4 @@ const UserSchema = mongoose.Schema({
     },
 })
 
-UserSchema.methods.generateHash = function(password) {
-    return bcrypt.hashSync(password, becrypt.genSaltSync(8), null);
-};
-
-UserSchema.methods.validPassword = function(password) {
-    return bcrypt.compareSync(password, this.password);
-};
-
-module.exports = mongoose.model('Users', UserSchema);
+module.exports = mongoose.model('User', UserSchema);

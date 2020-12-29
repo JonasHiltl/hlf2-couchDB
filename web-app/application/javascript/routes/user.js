@@ -1,6 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv/config');
+const bcrypt = require('bcrypt');
 const User = require('../models/User')
 const fabricUser = require('../fabricUser');
 
@@ -9,6 +10,8 @@ const router = express.Router();
 //need to save the information off-chain in postgres
 // use CORS package to whitelist domains for security
 router.post('/register', async (req, res) => {
+    // destructure req.body
+    const {firstName, lastName, email, password} = req.body;
 
     //check if UUID already exists
     let UUID = uuidv4();
@@ -18,7 +21,7 @@ router.post('/register', async (req, res) => {
     };
 
     //check if firstName is empty
-    if (!req.body.firstName) {
+    if (!firstName) {
         res.end({
             success:false,
             message: 'First name cannot be blank'
@@ -26,7 +29,7 @@ router.post('/register', async (req, res) => {
     }
 
     //check if lastName is empty
-    if (!req.body.lastName) {
+    if (!lastName) {
         res.end({
             success:false,
             message: 'Last name cannot be blank'
@@ -34,9 +37,8 @@ router.post('/register', async (req, res) => {
     }
 
     //check if email already exists
-    const anyEmail = req.body.email;
-    const email = anyEmail.toLowerCase();
-    const emailExists = await User.exists({ email: email });
+    const lowerEmail = email.toLowerCase();
+    const emailExists = await User.exists({ email: lowerEmail });
     if (emailExists) {
         res.send({
             message: 'This email is already registered',
@@ -46,16 +48,21 @@ router.post('/register', async (req, res) => {
         return;
     };
 
+    //hash password
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+    const bcryptPassword = await bcrypt.hash (password, salt);
+
     const user = new User({
         _id: UUID,
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        email: email,
-        password: req.body.password
+        firstName: firstName,
+        lastName: lastName,
+        email: lowerEmail,
+        password: bcryptPassword
     });
 
     try{
-        let fabricRes = await fabricUser.Enroll(UUID);
+        const fabricRes = await fabricUser.Enroll(UUID);
 
         const savedUser = await user.save();
         res.json({
@@ -76,15 +83,8 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async function (req, res) {
-    var email = req.body.email;
-    var password = req.body.password
     try{
 
-        // Create a new file system based wallet for managing identities.
-        const walletPath = path.join(process.cwd(), 'wallet');
-        const wallet = new FileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
-        
     } catch (error)  {
 
     }
