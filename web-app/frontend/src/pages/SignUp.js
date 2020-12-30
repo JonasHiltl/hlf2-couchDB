@@ -40,7 +40,7 @@ const SignUp = ({ signup, isAuthenticated}) => {
     const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
     var mailformat = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    const isEnabled = email.match(mailformat) && password.length > 7 && password === re_password && firstName.length > 0 && lastName.length > 0 && terms === true;
+    const buttonIsEnabled = email.match(mailformat) && password.length > 7 && password === re_password && firstName.length > 0 && lastName.length > 0 && terms === true;
 
     const name = firstName + ' ' + lastName;
 
@@ -223,9 +223,9 @@ const SignUp = ({ signup, isAuthenticated}) => {
                             <Button 
                                 type="primary"
                                 block
-                                disabled={!isEnabled}
+                                disabled={!buttonIsEnabled}
                                 htmlType="submit">
-                                SignUp
+                                Register
                             </Button>
                         </Form.Item>
                         <Form.Item>

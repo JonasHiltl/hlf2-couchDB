@@ -1,65 +1,88 @@
 import React, { useState } from 'react';
-import { connect } from 'react-redux';
 import { Link, Redirect } from 'react-router-dom';
-import Media from "react-media";
 import { useMedia } from 'react-media';
+import axios from 'axios';
 
-import { Form, Input, Button, Checkbox, Space, Typography } from 'antd';
+import { Form, Input, Button, Checkbox, Space, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+
+axios.defaults.withCredentials = true;
 
 const { Text, Title  } = Typography;
 
-const NormalLoginForm = ({ login, isAuthenticated, user }) => {
+const NormalLoginForm = () => {
+  const [loading, setLoading] = useState(false);
 
-    const GLOBAL_MEDIA_QUERIES = {
-        xs: "(max-width: 480px)",
-        sm: "(max-width: 576px)",
-        md: "(max-width: 768px)",
-        lg: "(max-width: 992px)",
-        xl: "(max-width: 1200px)",
-        xxl: "(max-width: 1600px)",
-    };
-    const matches = useMedia({ queries: GLOBAL_MEDIA_QUERIES });
-    const spaceXs = matches.xs ? 0 : 24;
+  const GLOBAL_MEDIA_QUERIES = {
+      xs: "(max-width: 480px)",
+      sm: "(max-width: 576px)",
+      md: "(max-width: 768px)",
+      lg: "(max-width: 992px)",
+      xl: "(max-width: 1200px)",
+      xxl: "(max-width: 1600px)",
+  };
+  const matches = useMedia({ queries: GLOBAL_MEDIA_QUERIES });
+  const spaceXs = matches.xs ? 0 : 24;
 
-    const [formData, setFormData] = useState({
-        email: localStorage.getItem('email') || '',
-        password: localStorage.getItem('password') || '',
-        rememberMe: true
+  const [formData, setFormData] = useState({
+      email: '',
+      password: '',
+      rememberMe: true
+  });
+
+  const handleCheckbox = e => {
+      setFormData(({ rememberMe, ...formData }) =>
+      ({ ...formData, rememberMe: !rememberMe })
+      );
+  };
+
+  const { email, password, rememberMe } = formData;
+
+  const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const isEnabled = email.length > 0 && password.length > 7
+
+  const successMessage = (responseMessage) => {
+    message.success(responseMessage);
+  };
+
+  const errorMessage = (responseMessage) => {
+    message.error(responseMessage);
+  };
+
+  const serverErrorMessage = (errorMessage) => {
+    message.error(errorMessage);
+  };
+
+  const login = async () =>{
+    try  {
+      setLoading(true)
+      await axios.post('http://localhost:3000/account/login', {
+      email: email,
+      password: password,
+      withcredentials: true
+    }).then(res => {
+      if (res.data.success) {
+        successMessage(res.data.message)
+      } else {
+        errorMessage(res.data.message)
+      }
     });
-
-    const handleCheckbox = e => {
-        setFormData(({ rememberMe, ...formData }) =>
-        ({ ...formData, rememberMe: !rememberMe })
-        );
-    };
-
-    const { email, password, rememberMe } = formData;
-
-    const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
-
-    const isEnabled = email.length > 0 && password.length > 7;
-
-    const onSubmit = e => {
-    //e.preventDefault(); prevents the site from reloading only important when you use native html button or input not with AntDesign
-
-    login(email, password);
-    if (rememberMe) {
-      localStorage.setItem('rememberMe', rememberMe);
-      localStorage.setItem('email', email);
-      localStorage.setItem('password', password);
+    setLoading(false)
+    } catch (err) {
+      serverErrorMessage(err.message);
     }
   };
-  
-  if (isAuthenticated)
-    return <Redirect to='/' />;
+
+  //if (isAuthenticated)
+  //  return <Redirect to='/' />;
   return (
     <div>
       <Space direction="vertical" size={spaceXs} style={{ width: '100%' }}>
         <Title>EHR</Title>
         <Title level={2}>Log in to your account</Title>
         <Form 
-          onFinish={e => onSubmit(e)}
+          onFinish={login}
           initialValues={{
             remember: true,
           }}
@@ -121,6 +144,7 @@ const NormalLoginForm = ({ login, isAuthenticated, user }) => {
           </div>
           <Button 
             type="primary"
+            loading={loading}
             block
             disabled={!isEnabled}
             htmlType="submit">

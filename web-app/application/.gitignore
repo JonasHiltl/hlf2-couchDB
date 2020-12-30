@@ -1,2 +1,6 @@
 wallet/
 javascript/.env
+connection-org1.json
+connection-org1.yaml
+connection-org2.json
+connection-org2.yaml

@@ -1,16 +1,19 @@
 'use strict';
 require('dotenv').config();
 const mongoose = require('mongoose')
-
-var express = require('express');
-var bodyParser = require('body-parser');
-var app = express();
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const app = express();
+const cookieParser = require('cookie-parser');
 
 //Import Routes
 const userRoute = require('./routes/user')
 
 //Middlewares = functions that get run whenever a route is called. For example an auth function that runs ever API call
+app.use(cors({origin: 'http://localhost:3001', credentials: true }));
 app.use(bodyParser.json());
+app.use(cookieParser())
 app.use('/account', userRoute);
 
 //connect to db
