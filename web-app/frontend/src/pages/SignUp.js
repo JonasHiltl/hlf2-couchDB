@@ -1,18 +1,28 @@
 import React, { useState } from 'react';
-import { connect } from 'react-redux';
 import { Link, Redirect } from 'react-router-dom';
-import Media from "react-media";
 import { useMedia } from 'react-media';
+import axios from 'axios';
 
-import { Form, Input, Button, Space, Typography, Tooltip, Checkbox } from 'antd';
+import { Form, Input, Button, Space, Typography, Tooltip, Checkbox, message } from 'antd';
 import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 //import { signup } from '../store/actions/auth';
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
-//import { ReactComponent as EmailIcon } from '../assets/EmailIcon.svg';
+import { ReactComponent as EmailIcon } from '../assets/EmailIcon.svg';
 
 const { Text, Title  } = Typography;
 
 const SignUp = ({ signup, isAuthenticated}) => {
+    const [loading, setLoading] = useState(false);
+    const [emailSend, setEmailSend] = useState(false);
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        re_password: '',
+        terms: false
+    });
+
 
     const GLOBAL_MEDIA_QUERIES = {
         xs: "(max-width: 480px)",
@@ -25,16 +35,6 @@ const SignUp = ({ signup, isAuthenticated}) => {
     const matches = useMedia({ queries: GLOBAL_MEDIA_QUERIES });
     const spaceXs = matches.xs ? 0 : 24;
 
-    const [accountCreated, setAccountCreated] = useState(false);
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        re_password: '',
-        terms: false
-    });
-
     const { firstName, lastName, email, password, re_password, terms } = formData;
 
     const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -42,14 +42,38 @@ const SignUp = ({ signup, isAuthenticated}) => {
     var mailformat = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     const buttonIsEnabled = email.match(mailformat) && password.length > 7 && password === re_password && firstName.length > 0 && lastName.length > 0 && terms === true;
 
-    const name = firstName + ' ' + lastName;
+    const successMessage = (responseMessage) => {
+        message.success(responseMessage);
+    };
+    
+    const errorMessage = (responseMessage) => {
+        message.error(responseMessage);
+    };
 
-    const onSubmit = e => {
-        //e.preventDefault(); prevents the site from reloading only important when you use native html button or input not with AntDesign
+    const serverErrorMessage = (errorMessage) => {
+        message.error(errorMessage);
+    };
 
-        if (password === re_password) {
-            signup(name, email, password, re_password);
-            setAccountCreated(true);
+    const submit = async () => {
+        try {
+            setLoading(true)
+            await axios.post('http://localhost:3000/account/register', {
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                password: password,
+                withcredentials: true
+            }).then(res => {
+                if (res.data.success) {
+                    successMessage(res.data.message)
+                  } else {
+                    errorMessage(res.data.message)
+                  }
+            });
+            setLoading(false)
+            setEmailSend(true)
+        } catch (err) {
+            serverErrorMessage(err.message);
         }
     };
   
@@ -61,32 +85,29 @@ const SignUp = ({ signup, isAuthenticated}) => {
 
     if (isAuthenticated)
         return <Redirect to='/' />;
-    /* if (accountCreated)
-        return <Redirect to='/login' />; */
 
     return (
-        <div>
-            { accountCreated?
-            <div>
-                <Space direction="vertical" size={24} style={{ width: '100%' }}>
-                    <Tooltip title="back to Login">
-                        <Link to='/login'>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <ArrowLeftOutlined style={{ fontSize: '18px', marginRight: '10px' }}/>
-                                <Title style={{ margin: '0px'}}level={5}>Back</Title>
-                            </div>
-                        </Link>
-                    </Tooltip>
-                    <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
-                        Icon
-                        {/*<EmailIcon style={{ height: '90px'}}/>*/}
-                    </div>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between'}}>
+            { emailSend?
+                <Space direction="vertical" size={30} style={{ width: '100%' }}>
+                    <Space direction="vertical" size={45} style={{ width: '100%' }}>
+                        <Tooltip title="back to Login">
+                            <Link to='/login'>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <ArrowLeftOutlined style={{ fontSize: '18px', marginRight: '10px' }}/>
+                                    <Title style={{ margin: '0px'}}level={5}>Back</Title>
+                                </div>
+                            </Link>
+                        </Tooltip>
+                        <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
+                            {<EmailIcon style={{ height: '90px'}}/>}
+                        </div>
+                    </Space>
                     <Title style={{ textAlign: 'center' }}level={2}>Please activate your Account</Title>
                     <div style={{ textAlign: 'center'}}>
                         <Text >We have sent you your email activation link to your email.</Text>
                     </div>
-                </Space>
-            </div>:
+                </Space>:
             <div>
 
                 <Space 
@@ -97,7 +118,7 @@ const SignUp = ({ signup, isAuthenticated}) => {
                     <Title>EHR</Title>
                     <Title level={2}>Create your account</Title>
                     <Form 
-                        onFinish={e => onSubmit(e)}
+                        onFinish={submit}
                         spellcheck="false"
                         >
                         <div style={{ display: 'flex', width: '100%' }}>
@@ -222,6 +243,7 @@ const SignUp = ({ signup, isAuthenticated}) => {
                         <Form.Item>
                             <Button 
                                 type="primary"
+                                loading={loading}
                                 block
                                 disabled={!buttonIsEnabled}
                                 htmlType="submit">

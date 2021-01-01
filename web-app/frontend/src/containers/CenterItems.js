@@ -15,10 +15,11 @@ export const CenteredWrapper = styled.div`
     }
     @media (max-width: 768px) {
         width: 70%;
+        height: 60%
     }
 `
 
-const CenterItems = (props) => {
+const CenterItems = props => {
     return (
         <Container>
             <CenteredWrapper>

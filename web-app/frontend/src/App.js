@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import axios from 'axios';
 import './app.css';
@@ -6,12 +6,48 @@ import SignUp from './pages/SignUp';
 import NormalLoginForm from './pages/login';
 import CenterItems from './containers/CenterItems';
 
+axios.defaults.withCredentials = true;
+
 //axios.defauls.withcredentials = true
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const authorization = async () => {
+    try {
+      await axios.get(
+        'http://localhost:3000/account/verify', 
+        {withcredentials: true}
+        ).then(res =>{
+          if (res) {
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+          }
+        })
+
+    } catch (error) {
+      console.error(error.message)
+    }
+  };
+
+  useEffect(() => {
+    authorization();
+  }, []);
+
   return (
     <Router>
       <div className="App">
         <Switch>
+          <Route exact path='/'>
+            {isAuthenticated?
+            <div>
+              Du bist eingeloggt
+            </div>:
+            <div>
+              nicht eingeloggt
+            </div>
+            }
+          </Route>
           <Route path='/register'>
             <CenterItems>
               <SignUp/>
@@ -22,6 +58,7 @@ function App() {
               <NormalLoginForm/>
             </CenterItems>
           </Route>
+          <Route path='/activate/:uid/:token' />
         </Switch> 
       </div>
     </Router>

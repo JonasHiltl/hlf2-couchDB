@@ -2,13 +2,22 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv/config');
 const bcrypt = require('bcrypt');
+const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const fabricUser = require('../fabricUser');
 const generateAuthToken = require('../utils/generateAuthToken');
 const validInfo = require('../middleware/validInfo');
-const authorize = require('../middleware/authorize')
+const authorize = require('../middleware/authorize');
 
 const router = express.Router();
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth : {
+        user: process.env.emailUser,
+        pass: process.env.emailPw,
+    }
+})
 
 //need to save the information off-chain in postgres
 // use CORS package to whitelist domains for security
@@ -43,7 +52,7 @@ router.post('/register', validInfo, async (req, res) => {
     const emailExists = await User.exists({ email: lowerEmail });
     if (emailExists) {
         return res.send({
-            message: 'This Email is already registered',
+            message: 'This email is already registered',
             success: false,
         }).status(409)
     };
@@ -58,13 +67,23 @@ router.post('/register', validInfo, async (req, res) => {
         firstName: firstName,
         lastName: lastName,
         email: lowerEmail,
-        password: bcryptPassword
+        password: bcryptPassword,
     });
 
     try{
         const fabricRes = await fabricUser.Enroll(UUID);
 
         const savedUser = await user.save();
+
+        // 2. send Email with link to :-id/:token
+        const emailVerificationUrl = `http://localhost:3000/account/confirmation/${UUID}`;
+        transporter.sendMail({
+            to: lowerEmail,
+            from: 'jonashiltl2003@gmail.com',
+            subject: 'Confirmation Email',
+            html: '<h4>Hello, ' + firstName + '. </h4> <br> Please click this link to confirm your email: <a href=' + emailVerificationUrl + '>' + emailVerificationUrl + '</a>'
+        });
+
         return res.json({
             savedUser,
             message: 'Your account got created, have fun exploring the App!',
@@ -88,7 +107,7 @@ router.post('/login',validInfo, async (req, res) => {
         if (!email) {
             return res.end({
                 success:false,
-                message: 'Please enter your Email'
+                message: 'Please enter your email'
             })
         }
         if (!password) {
@@ -108,8 +127,15 @@ router.post('/login',validInfo, async (req, res) => {
             }).status(401)
         }
 
-        //check if incoming password is the same as the database password
         const databaseUser = await User.findOne({ email: lowerEmail });
+        //check if account is activated
+        if (!databaseUser.active) {
+            return res.send({
+                message: 'Please confirm your email to login',
+                success: false,
+            }).status(401)
+        }
+        //check if incoming password is the same as the database password
         const databasePassword = databaseUser.password;
         const validPassword = await bcrypt.compare(password, databasePassword);
         if (!validPassword) {
@@ -118,19 +144,29 @@ router.post('/login',validInfo, async (req, res) => {
                 success: false
             }).status(401)
         }
-        const accessToken = generateAuthToken(databaseUser._id);
-        var in1h = new Date(new Date().getTime() + 60 * 60 * 1000);
-        return res
-                    .status(200)
-                    .cookie('accessToken', accessToken, {
-                        sameSite: 'strict',
-                        path: '/',
-                        expires: in1h,
-                        httpOnly: true
-                    }).send({
-                        message: "Successfully logged in",
-                        success: true
-                    })
+        try{
+            
+            const accessToken = generateAuthToken(databaseUser._id);
+            var in1h = new Date(new Date().getTime() + 60 * 60 * 1000);
+            return res
+                        .status(200)
+                        .cookie('accessToken', accessToken, {
+                            sameSite: 'strict',
+                            path: '/',
+                            expires: in1h,
+                            httpOnly: true
+                        }).send({
+                            message: "Successfully logged in",
+                            success: true
+                        })
+        }catch (error)  {
+            res.json({
+                error: error,
+                message: 'There was a Problem authorizing you',
+                success: false
+            }).status(500)
+
+        }
 
     } catch (error)  {
         res.json({
@@ -156,13 +192,30 @@ router.get('/logout', async (req, res) => {
     }
 })
 
-router.post("/verify", authorize, (req, res) => {
+router.get("/verify", authorize, (req, res) => {
     try {
       res.json(true);
     } catch (err) {
       console.error(err.message);
       res.status(500).send("Server error");
     }
+  });
+
+router.get('/confirmation/:token', async (req, res) => {
+    try {
+        //check if token is same as -id from server
+        const user = await User.findOne({ _id: req.params.token });
+        await User.updateOne({ _id: user}, {active: true});
+    } catch (e) {
+        res.send('error');
+    }
+
+    const in15Secs = new Date(new Date().getTime() + 60 * 1000);
+    return res
+            .cookie('confirmMessage', 'Your Email is now confirmed, you can log in now',{
+                expires: in15Secs
+            })
+            .redirect('http://localhost:3001/login');
   });
 
 module.exports = router
