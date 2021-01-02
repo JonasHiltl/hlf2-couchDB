@@ -9,13 +9,13 @@ export const Container = styled.div`
 `
 
 export const CenteredWrapper = styled.div`
-    width: 400px;
-    @media (max-width: 480px) {
-        width: 90%;
-    }
+    width: 420px;
+    padding: 20px;
     @media (max-width: 768px) {
         width: 70%;
-        height: 60%
+    }
+    @media (max-width: 480px) {
+        width: 100%;
     }
 `
 

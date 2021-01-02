@@ -90,8 +90,8 @@ const NormalLoginForm = props => {
     return <Redirect to='/' />;
 
   return (
-    <div>
-      <Space direction="vertical" size={spaceXs} style={{ width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', justifyContent: 'space-between'}}>
+      <Space direction="vertical" size={spaceXs} >
         <Title>EHR</Title>
         <Title level={2}>Log in to your account</Title>
         <Form 

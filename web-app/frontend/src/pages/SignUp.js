@@ -108,8 +108,6 @@ const SignUp = ({ signup, isAuthenticated}) => {
                         <Text >We have sent you your email activation link to your email.</Text>
                     </div>
                 </Space>:
-            <div>
-
                 <Space 
                     direction="vertical"
                     size={spaceXs} 
@@ -255,7 +253,6 @@ const SignUp = ({ signup, isAuthenticated}) => {
                         </Form.Item>
                     </Form>
                 </Space>
-            </div>
         }
         </div>
         

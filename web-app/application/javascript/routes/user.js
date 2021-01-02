@@ -182,7 +182,10 @@ router.get('/logout', async (req, res) => {
         res
             .status(200)
             .clearCookie('accessToken')
-            .send('Successfully logged out')
+            .json({
+                message: 'Successfully logged out',
+                success: true
+            })
     } catch (error) {
         res.json({
             error: error,
