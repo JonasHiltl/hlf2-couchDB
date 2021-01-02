@@ -8,13 +8,14 @@ import {
     RESET_PASSWORD_FAILED,
     RESET_PASSWORD_CONFIRM_SUCCESS,
     RESET_PASSWORD_CONFIRM_FAILED,
-    LOGOUT,
+    LOGOUT_SUCCESS,
     LOGOUT_FAILED,
     USER_LOADED_SUCCESS,
     USER_LOADED_FAILED,
     AUTHENTICATED_FAILED,
-    AUTHENTICATED_SUCCESS
+    AUTHENTICATED_SUCCESS,
 } from './types';
+axios.defaults.withCredentials = true;
 
 export const checkAuthenticated = () => async dispatch => {
     if (typeof window == 'undefined') {
@@ -28,16 +29,19 @@ export const checkAuthenticated = () => async dispatch => {
         if (res.data.msg !== 'Token is not valid') {
             dispatch({
                 type: AUTHENTICATED_SUCCESS,
+                payload: res.data
             });
         } else {
             dispatch({
-                type: AUTHENTICATED_FAILED
+                type: AUTHENTICATED_FAILED,
+                payload: res.data
             });
         }
     } catch (err) {
-    dispatch({
-        type: AUTHENTICATED_FAILED
-    });
+        dispatch({
+            type: AUTHENTICATED_FAILED,
+            payload: err
+        });
     }
 };
 
@@ -46,8 +50,9 @@ export const login = (email, password) => async dispatch => {
         const res = await axios.post('http://localhost:3000/account/login', {
             email: email,
             password: password,
-            withcredentials: true 
+            withcredentials: true
         });
+        console.log(res.data)
         if (res.data.success === true) {
             dispatch({
                 type: LOGIN_SUCCESS,
@@ -61,8 +66,7 @@ export const login = (email, password) => async dispatch => {
         }
     } catch (err) {
         dispatch({
-            type: LOGIN_FAILED,
-            payload: res.data
+            type: LOGIN_FAILED
         });
     }
 };
@@ -85,34 +89,32 @@ export const register = ( firstName, lastName, email, password ) => async dispat
             dispatch({
                 type: REGISTER_FAILED,
                 payload: res.data
-            })
+            });
         }
     } catch (err) {
         dispatch({
-            type: REGISTER_FAILED,
-            payload: res.data
-        })
+            type: REGISTER_FAILED
+        });
     }
 };
 
-export const logout = () => dispatch => {
+export const logout = () => async dispatch => {
     try {
         const res = await axios.get('http://localhost:3000/account/logout', { withCredentials: true });
         if (res.data.success === true) {
             dispatch ({
-                type: LOGOUT,
+                type: LOGOUT_SUCCESS,
                 payload: res.data
-            })
+            });
         } else {
             dispatch({
-                type: LOGOUT_FAILED,
-                payload: res.data
-            })
+                type: LOGOUT_FAILED
+            });
         }
     } catch (err) {
         dispatch({
             type: LOGOUT_FAILED,
-            payload: res.data
-        })
+            payload: err
+        });
     }
-}
+};

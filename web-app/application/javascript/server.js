@@ -7,12 +7,11 @@ const cors = require('cors');
 const app = express();
 const cookieParser = require('cookie-parser');
 
-//Import Routes
 const userRoute = require('./routes/user')
 
 app.use(cors({origin: 'http://localhost:3001', credentials: true }));
+app.use(cookieParser());
 app.use(bodyParser.json());
-app.use(cookieParser())
 
 // implement the authorize middleware at the logout
 

@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
 import { Link, Redirect } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { useMedia } from 'react-media';
-import axios from 'axios';
 
 import { Form, Input, Button, Space, Typography, Tooltip, Checkbox, message } from 'antd';
 import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 //import { signup } from '../store/actions/auth';
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter'
 import { ReactComponent as EmailIcon } from '../assets/EmailIcon.svg';
+import { register } from '../store/actions/auth'
 
 const { Text, Title  } = Typography;
 
-const SignUp = ({ signup, isAuthenticated}) => {
+const SignUp = () => {
+    const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
     const [emailSend, setEmailSend] = useState(false);
+    const isAuthenticated = useSelector(state => state.isAuthenticated);
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -22,7 +25,6 @@ const SignUp = ({ signup, isAuthenticated}) => {
         re_password: '',
         terms: false
     });
-
 
     const GLOBAL_MEDIA_QUERIES = {
         xs: "(max-width: 480px)",
@@ -54,37 +56,18 @@ const SignUp = ({ signup, isAuthenticated}) => {
         message.error(errorMessage);
     };
 
-    const submit = async () => {
-        try {
-            setLoading(true)
-            await axios.post('http://localhost:3000/account/register', {
-                firstName: firstName,
-                lastName: lastName,
-                email: email,
-                password: password,
-                withcredentials: true
-            }).then(res => {
-                if (res.data.success) {
-                    successMessage(res.data.message)
-                  } else {
-                    errorMessage(res.data.message)
-                  }
-            });
-            setLoading(false)
-            setEmailSend(true)
-        } catch (err) {
-            serverErrorMessage(err.message);
-        }
-    };
+    const onSubmit = () => {
+        setLoading(true);
+        dispatch(register(firstName, lastName, email, password));
+        setLoading(false);
+        setEmailSend(true)
+      }
   
     const handleCheckbox = e => {
         setFormData(({ terms, ...formData }) =>
           ({ ...formData, terms: !terms })
         );
       };
-
-    if (isAuthenticated)
-        return <Redirect to='/' />;
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between'}}>
@@ -116,7 +99,7 @@ const SignUp = ({ signup, isAuthenticated}) => {
                     <Title>EHR</Title>
                     <Title level={2}>Create your account</Title>
                     <Form 
-                        onFinish={submit}
+                        onFinish={onSubmit}
                         spellcheck="false"
                         >
                         <div style={{ display: 'flex', width: '100%' }}>
@@ -257,12 +240,6 @@ const SignUp = ({ signup, isAuthenticated}) => {
         </div>
         
     );
-};
-  
-const mapStateToProps = state => {
-  return {
-    isAuthenticated: state.auth.isAuthenticated,
-  }
 };
 
 export default (SignUp);

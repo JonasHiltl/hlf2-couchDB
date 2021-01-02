@@ -1,19 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Link, Redirect } from 'react-router-dom';
 import { useMedia } from 'react-media';
-import axios from 'axios';
+import { useSelector, useDispatch } from 'react-redux';
 import Cookies from 'js-cookie';
 
 import { Form, Input, Button, Checkbox, Space, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import { login } from '../store/actions/auth';
 
-axios.defaults.withCredentials = true;
 
 const { Text, Title  } = Typography;
 
-const NormalLoginForm = props => {
+const Login = () => {
   const [loading, setLoading] = useState(false);
-  const [confirmMessage, setConfirmMessage] = useState(Cookies.get('confirmMessage'))
+  const [confirmMessage, setConfirmMessage] = useState(Cookies.get('confirmMessage'));
+  const successMessage = useSelector(state => state.successMessage);
+  const errorMessage = useSelector(state => state.errorMessage);
+  const isAuthenticated = useSelector(state => state.isAuthenticated);
+  const dispatch = useDispatch();
 
   const GLOBAL_MEDIA_QUERIES = {
       xs: "(max-width: 480px)",
@@ -48,37 +52,33 @@ const NormalLoginForm = props => {
     message.success(confirmMessage);
   };
 
-  const successMessage = (responseMessage) => {
-    message.success(responseMessage);
+  const success = () => {
+    message.success(successMessage);
   };
 
-  const errorMessage = (responseMessage) => {
-    message.error(responseMessage);
-  };
-
-  const serverErrorMessage = (errorMessage) => {
+  const error = () => {
     message.error(errorMessage);
   };
 
-  const login = async () =>{
-    try  {
-      setLoading(true)
-      await axios.post('http://localhost:3000/account/login', {
-        email: email,
-        password: password,
-        withcredentials: true
-      }).then(res => {
-        if (res.data.success) {
-          successMessage(res.data.message)
-        } else {
-          errorMessage(res.data.message)
-        }
-    });
-    setLoading(false)
-    } catch (err) {
-      serverErrorMessage(err.message);
-    }
+  const warning = () => {
+    message.warning('You are already logged in');
   };
+
+  const onSubmit = () => {
+    if (isAuthenticated === false) {
+      setLoading(true);
+      dispatch(login(email, password));
+      setLoading(false);
+      if (errorMessage) {
+        return error();
+      }
+      if (successMessage && !errorMessage.length > 2) {
+        return success()
+      }
+    } else {
+      warning()
+    }
+  }
 
   useEffect(() => {
     if (confirmMessage) {
@@ -86,7 +86,7 @@ const NormalLoginForm = props => {
     }
   }, []);
 
-  if (props.isAuthenticated)
+  if (isAuthenticated)
     return <Redirect to='/' />;
 
   return (
@@ -95,7 +95,7 @@ const NormalLoginForm = props => {
         <Title>EHR</Title>
         <Title level={2}>Log in to your account</Title>
         <Form 
-          onFinish={login}
+          onFinish={onSubmit}
           initialValues={{
             remember: true,
           }}
@@ -169,12 +169,5 @@ const NormalLoginForm = props => {
     </div>
   );
 };
-  
-const mapStateToProps = state => {
-  return {
-    isAuthenticated: state.auth.isAuthenticated,
-    user: state.auth.user
-  }
-};
 
-export default (NormalLoginForm);
+export default (Login);

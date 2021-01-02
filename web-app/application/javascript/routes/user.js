@@ -140,7 +140,7 @@ router.post('/login',validInfo, async (req, res) => {
         const validPassword = await bcrypt.compare(password, databasePassword);
         if (!validPassword) {
             return res.send({
-                essage: 'Email or Password is incorrect',
+                message: 'Email or Password is incorrect',
                 success: false
             }).status(401)
         }
@@ -177,6 +177,20 @@ router.post('/login',validInfo, async (req, res) => {
     }
 });
 
+router.get('/users/me', async (req, res) => {
+    try {
+        const token = req.cookies.accessToken;
+        const verify = jwt.verify(token, process.env.jwtSecret);
+        console.log(token)
+        return res.json({
+            message: 'test response success',
+            success: true
+        }).status(200)
+    } catch (error) {
+        res.json(error)
+    }
+});
+
 router.get('/logout', async (req, res) => {
     try {
         res
@@ -193,16 +207,19 @@ router.get('/logout', async (req, res) => {
             success: false
         }).status(500)
     }
-})
+});
 
-router.get("/verify", authorize, (req, res) => {
+router.get("/verify", authorize, async (req, res) => {
     try {
-      res.json(true);
+        res.json(true);
     } catch (err) {
-      console.error(err.message);
-      res.status(500).send("Server error");
+        res.json({
+            error: error,
+            message: 'There was a Problem with our Servers',
+            success: false
+        }).status(500)
     }
-  });
+});
 
 router.get('/confirmation/:token', async (req, res) => {
     try {
@@ -219,6 +236,6 @@ router.get('/confirmation/:token', async (req, res) => {
                 expires: in15Secs
             })
             .redirect('http://localhost:3001/login');
-  });
+});
 
 module.exports = router
