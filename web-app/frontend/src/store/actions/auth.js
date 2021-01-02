@@ -58,6 +58,7 @@ export const login = (email, password) => async dispatch => {
                 type: LOGIN_SUCCESS,
                 payload: res.data
             });
+            dispatch(loadUser());
         } else {
             dispatch({
                 type: LOGIN_FAILED,
@@ -115,6 +116,26 @@ export const logout = () => async dispatch => {
         dispatch({
             type: LOGOUT_FAILED,
             payload: err
+        });
+    }
+};
+
+export const loadUser = () => async dispatch => {
+    try {
+        const res = await axios.get('http://localhost:3000/account/users/me', {withcredentials: true});
+        if (res.data.success === true) {
+            dispatch ({
+                type: USER_LOADED_SUCCESS,
+                payload: res.data
+            });
+        } else {
+            dispatch({
+                type: USER_LOADED_FAILED
+            })
+        }
+    } catch (err) {
+        dispatch({
+            type: USER_LOADED_FAILED
         });
     }
 };

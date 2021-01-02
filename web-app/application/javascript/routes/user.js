@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 require('dotenv/config');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
+var jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const fabricUser = require('../fabricUser');
 const generateAuthToken = require('../utils/generateAuthToken');
@@ -181,13 +182,18 @@ router.get('/users/me', async (req, res) => {
     try {
         const token = req.cookies.accessToken;
         const verify = jwt.verify(token, process.env.jwtSecret);
-        console.log(token)
+        const user_id = verify.user.id;
+        const user = await User.findOne({ _id: user_id });
         return res.json({
-            message: 'test response success',
+            user,
             success: true
         }).status(200)
     } catch (error) {
-        res.json(error)
+        res.json({
+            error: error,
+            message: 'There was a Problem with our Servers',
+            success: false
+        }).status(500)
     }
 });
 

@@ -8,6 +8,7 @@ import { message } from 'antd';
 const Index = () => {
     const isAuthenticated = useSelector(state => state.isAuthenticated);
     const successMessage = useSelector(state => state.successMessage);
+    const user = useSelector(state => state.user);
 
     const success = () => {
         message.success(successMessage);
@@ -17,13 +18,11 @@ const Index = () => {
         if (successMessage) {
             success()
         }
-        const res = await axios.get('http://localhost:3000/account/users/me', {withcredentials: true});
-        console.log(res);
     }, []);
     return (
         <div>
             {isAuthenticated? 
-                'Ich bin eingeloggt':
+                `Hallo ${user.firstName}, du bist eingeloggt`:
                 'Ich bin nicht eingeloggt'
             }
 
