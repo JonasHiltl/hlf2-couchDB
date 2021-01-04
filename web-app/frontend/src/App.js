@@ -6,7 +6,9 @@ import { useSelector, useDispatch } from 'react-redux'
 import './app.css';
 import SignUp from './pages/SignUp';
 import Login from './pages/login';
-import Index from './pages/index'
+import Index from './pages/index';
+import ResetPassword from './pages/ResetPassword';
+import ResetPasswordConfirm from './pages/ResetPasswordConfirm';
 import CenterItems from './containers/CenterItems';
 import { checkAuthenticated } from './store/actions/auth'
 
@@ -39,7 +41,12 @@ function App() {
               <Login/>
             </CenterItems>
           </Route>
-          <Route path='/activate/:uid/:token' />
+          <Route exact path='/reset-password'>
+            <CenterItems>
+              <ResetPassword/>
+            </CenterItems>
+          </Route>
+          <Route exact path='/reset-password/confirm/:token' component={ResetPasswordConfirm}/>
         </Switch> 
       </div>
     </Router>

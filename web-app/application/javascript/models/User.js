@@ -30,6 +30,10 @@ const UserSchema = mongoose.Schema({
         default: false,
         require: true
     },
+    resetLink: {
+        data: String,
+        default: ''
+    }
 })
 
 module.exports = mongoose.model('User', UserSchema);

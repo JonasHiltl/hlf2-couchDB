@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, Redirect } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { useMedia } from 'react-media';
+import axios from 'axios';
 
 import { Form, Input, Button, Space, Typography, Tooltip, Checkbox, message } from 'antd';
 import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeTwoTone, MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
@@ -44,23 +45,30 @@ const SignUp = () => {
     var mailformat = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     const buttonIsEnabled = email.match(mailformat) && password.length > 7 && password === re_password && firstName.length > 0 && lastName.length > 0 && terms === true;
 
-    const successMessage = (responseMessage) => {
+    const success = (responseMessage) => {
         message.success(responseMessage);
     };
     
-    const errorMessage = (responseMessage) => {
+    const error = (responseMessage) => {
         message.error(responseMessage);
     };
 
-    const serverErrorMessage = (errorMessage) => {
-        message.error(errorMessage);
-    };
-
-    const onSubmit = () => {
+    const onSubmit = async () => {
         setLoading(true);
-        dispatch(register(firstName, lastName, email, password));
+        const res = await axios.post('http://localhost:3000/account/register', {
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            password: password,
+            withcredentials: true
+        });
+        if (res.data.success === true) {
+            setEmailSend(true)
+            message.success(res.data.message);
+        } else if (res.data.success === false) {
+            message.error(res.data.message);
+        }
         setLoading(false);
-        setEmailSend(true)
       }
   
     const handleCheckbox = e => {

@@ -82,7 +82,10 @@ router.post('/register', validInfo, async (req, res) => {
             to: lowerEmail,
             from: 'jonashiltl2003@gmail.com',
             subject: 'Confirmation Email',
-            html: '<h4>Hello, ' + firstName + '. </h4> <br> Please click this link to confirm your email: <a href=' + emailVerificationUrl + '>' + emailVerificationUrl + '</a>'
+            html: `
+                <h4>Hello, ${firstName}.</h4> 
+                <p>Please click this link to confirm your email: <a href= ${emailVerificationUrl}>${emailVerificationUrl}</a><p/>
+                `
         });
 
         return res.json({
@@ -215,10 +218,10 @@ router.get('/logout', async (req, res) => {
     }
 });
 
-router.get("/verify", authorize, async (req, res) => {
+router.get('/verify', authorize, async (req, res) => {
     try {
         res.json(true);
-    } catch (err) {
+    } catch (error) {
         res.json({
             error: error,
             message: 'There was a Problem with our Servers',
@@ -230,18 +233,102 @@ router.get("/verify", authorize, async (req, res) => {
 router.get('/confirmation/:token', async (req, res) => {
     try {
         //check if token is same as -id from server
-        const user = await User.findOne({ _id: req.params.token });
+        const userId = req.params.token
+        const user = await User.findById( userId );
         await User.updateOne({ _id: user}, {active: true});
     } catch (e) {
         res.send('error');
     }
 
-    const in15Secs = new Date(new Date().getTime() + 60 * 1000);
+    const in15Secs = new Date(new Date().getTime() + 15 * 1000);
     return res
             .cookie('confirmMessage', 'Your Email is now confirmed, you can log in now',{
                 expires: in15Secs
             })
             .redirect('http://localhost:3001/login');
+});
+
+router.put('/reset-password', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const lowerEmail = email.toLowerCase();
+        const user = await User.findOne({email: lowerEmail})
+        if (!user) {
+            return res.json({
+                message: 'User with this email does not exist',
+                success: false
+            }).status(401)
+        }
+        const token = jwt.sign({_id: user._id},process.env.resetSecret, {expiresIn: '30min'});
+        transporter.sendMail({
+            to: lowerEmail,
+            from: 'jonashiltl2003@gmail.com',
+            subject: 'Reset your Password',
+            html: `
+                <p>Please click on the given link to reset your password</p> 
+                <a href=http://localhost:3001/reset-password/confirm/${token}>Reset your Password here</a>`
+        });
+        return user.updateOne({resetLink: token}, function (error, success) { 
+            if(error) {
+                return res.json({
+                    message: 'Error sending the Email',
+                    success: false
+                })
+            } else {
+                res.json({
+                    message: 'Email has been sent',
+                    success: true
+                }).status(200)}
+            })
+    } catch (error) {
+        res.json({
+            error: error,
+            message: 'There was a Problem with our Servers',
+            success: false
+        }).status(500)
+    }
+});
+
+router.post('/reset-password/confirm', async (req, res) => {
+    const { password, resetLink } = req.body
+    try {
+        if (!resetLink) {
+            return res.json({
+                message: 'Authentication error',
+                success: false
+            }).status(401)
+        }
+        jwt.verify(resetLink, process.env.resetSecret, function (error, decodedUser) {
+            if (error) {
+                return res.json({
+                    message: 'Incorrect token or is expired. Please request a new Email',
+                    success: false
+                }).status(401)
+            }
+            User.findOne({resetLink}, async (error, user) => {
+                if(error || !user) {
+                    return res.json({
+                        message: 'User with this token does not exist',
+                        success: false
+                    }).status(401)
+                }
+                const saltRounds = 10;
+                const salt = await bcrypt.genSalt(saltRounds);
+                const bcryptPassword = await bcrypt.hash (password, salt);
+                await User.updateOne({ _id: user._id}, {password: bcryptPassword});
+                return res.json({
+                    message: 'Your password has been changed',
+                    success: true
+                }).status(200)
+            })
+        })
+    } catch (error) {
+        res.json({
+            error: error,
+            message: 'There was a Problem with our Servers',
+            success: false
+        }).status(500)
+    }
 });
 
 module.exports = router
