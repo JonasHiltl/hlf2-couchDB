@@ -142,4 +142,4 @@ const ResetPasswordConfirm = ({ match }) => {
     );
 };
 
-export default (ResetPasswordConfirm);
+export default ResetPasswordConfirm;

@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import './app.css';
 import SignUp from './pages/SignUp';
 import Login from './pages/login';
-import Index from './pages/index';
+import Index from './pages/Index';
 import ResetPassword from './pages/ResetPassword';
 import ResetPasswordConfirm from './pages/ResetPasswordConfirm';
 import CenterItems from './containers/CenterItems';
